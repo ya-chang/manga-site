@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>漫画书架</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- 环境光 -->
+<div id="amb"><i class="o1"></i><i class="o2"></i><i class="o3"></i><i class="o4"></i></div>
+<div id="grain"></div>
+
+<!-- 导航栏 -->
+<nav id="nav" class="glass">
+  <div class="brand" id="brand"><span class="dot"></span><span class="nm" id="brandName">漫画书架</span></div>
+  <div class="navsep"></div>
+  <div id="navlinks"></div>
+  <button class="nbtn" id="navAdmin" title="后台管理">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+  </button>
+</nav>
+
+<!-- 视图容器（app.js 在此渲染首页/作品页/后台） -->
+<main id="app"></main>
+
+<!-- 登录浮层 -->
+<div id="login" hidden>
+  <div class="lcard glass glass-thick fade">
+    <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    <h3>后台管理</h3>
+    <p id="loginHint">输入管理密码，上传与管理你的漫画</p>
+    <input class="inp" id="loginPwd" type="password" placeholder="管理密码" autocomplete="current-password">
+    <button class="btn" id="loginBtn">登 录</button>
+    <div class="lerr" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- 进度 / 提示 -->
+<div id="boot"><div class="boot-c glass glass-thick"><div class="ring"></div><div class="boot-t" id="bootT">处理中…</div></div></div>
+<div id="toast" class="glass glass-thick"></div>
+
+<script src="vendor/pdf.min.js"></script>
+<script src="reader.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
