@@ -473,4 +473,18 @@
     d.addEventListener('click', e => { if (e.target === d) hide(); });
     show();
   })();
+
+  /* ───────── 背景样式切换（默认旧版纯色，按钮开启液态毛玻璃）───────── */
+  (function () {
+    const KEY = 'mb:liquid';
+    const btn = $('#bgToggle');
+    function apply() {
+      try { if (localStorage.getItem(KEY) === '1') document.body.classList.add('shelfig-on'); else document.body.classList.remove('shelfig-on'); } catch (e) {}
+    }
+    apply();
+    if (btn) btn.addEventListener('click', () => {
+      const on = document.body.classList.toggle('shelfig-on');
+      try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+    });
+  })();
 })();
