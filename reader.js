@@ -531,15 +531,27 @@
     let pinchD = 0, pinchZ = 1, tapTimer = 0, lastTapT = 0, lastTapX = 0, lastTapY = 0;
     const tdist = ts => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
     $('#stage').addEventListener('touchstart', e => {
-      if (!S || S.mode === 'scroll') return;
+      if (!S) return;
+      if (S.mode === 'scroll') {
+        if (e.touches.length === 2) { pinchD = tdist(e.touches); pinchZ = S.zoom; e.preventDefault(); }
+        return;                                  // 1 指交给原生滚动
+      }
       if (e.touches.length === 1) {
         tx = lastX = e.touches[0].clientX; ty = lastY = e.touches[0].clientY; tt = Date.now(); moved = false;
       } else if (e.touches.length === 2) {
-        pinchD = tdist(e.touches); pinchZ = S.zoom;
+        pinchD = tdist(e.touches); pinchZ = S.zoom; e.preventDefault();
       }
     }, { passive: false });
     $('#stage').addEventListener('touchmove', e => {
-      if (!S || S.mode === 'scroll') return;
+      if (!S) return;
+      if (S.mode === 'scroll') {
+        if (e.touches.length === 2 && pinchD) {
+          e.preventDefault();
+          const d = tdist(e.touches);
+          if (d > 0) { S.zoom = clamp(pinchZ * d / pinchD, 0.4, 6); S.fit = 'custom'; applyZoom(); }
+        }
+        return;                                  // 1 指滚动走原生
+      }
       if (e.touches.length === 2 && pinchD) {
         e.preventDefault();
         const d = tdist(e.touches);
@@ -551,17 +563,21 @@
       }
     }, { passive: false });
     $('#stage').addEventListener('touchend', e => {
-      if (!S || S.mode === 'scroll') return;
+      if (!S) return;
+      if (S.mode === 'scroll') {
+        if (pinchD) { pinchD = 0; S._touchTap = Date.now(); }   // 捏合结束：抑制随后的合成 click
+        return;                                  // scroll 模式不翻页
+      }
       if (e.touches.length >= 1) return;            // 还有手指按着，忽略
-      if (pinchD) { pinchD = 0; return; }            // 结束捏合，不触发翻页
+      if (pinchD) { pinchD = 0; S._touchTap = Date.now(); return; }  // 结束捏合，不触发翻页
       const t = e.changedTouches[0];
       const dt = Date.now() - tt;
       if (!moved && dt < 320 && S.zoom <= 1.05) {
         // 双击切换缩放（1x <-> 2x）
         if (Date.now() - lastTapT < 300 && Math.abs(t.clientX - lastTapX) < 40 && Math.abs(t.clientY - lastTapY) < 40) {
           clearTimeout(tapTimer); lastTapT = 0;
-          S.zoom = S.zoom > 1.05 ? 1 : (S.mode === 'scroll' ? 1.6 : 2);
-          S.fit = S.mode === 'scroll' ? 'width' : 'custom';
+          S.zoom = S.zoom > 1.05 ? 1 : 2;
+          S.fit = 'custom';
           applyZoom();
           return;
         }
