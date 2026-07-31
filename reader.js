@@ -530,6 +530,19 @@
     let tx = 0, ty = 0, tt = 0, moved = false, lastX = 0, lastY = 0;
     let pinchD = 0, pinchZ = 1, tapTimer = 0, lastTapT = 0, lastTapX = 0, lastTapY = 0;
     const tdist = ts => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
+    // iOS Safari 的捏合走 gesture 事件（与 touchmove 并行）。touch-action:pan-y 已屏蔽原生捏合，
+    // 这里再 preventDefault 双保险，并直接用 e.scale 驱动缩放，避免整页缩放/重载。
+    const HAS_GESTURE = ('ongesturechange' in window);
+    let gBase = 0;
+    const stageEl = $('#stage');
+    stageEl.addEventListener('gesturestart', e => { if (!S) return; e.preventDefault(); gBase = S.zoom; });
+    stageEl.addEventListener('gesturechange', e => {
+      if (!S) return; e.preventDefault();
+      if (!gBase) gBase = S.zoom;
+      S.zoom = clamp(gBase * e.scale, 0.4, 6); S.fit = 'custom'; applyZoom();
+      S._touchTap = Date.now();
+    });
+    stageEl.addEventListener('gestureend', e => { if (!S) return; e.preventDefault(); gBase = 0; S._touchTap = Date.now(); });
     $('#stage').addEventListener('touchstart', e => {
       if (!S) return;
       if (S.mode === 'scroll') {
@@ -553,6 +566,7 @@
         return;                                  // 1 指滚动走原生
       }
       if (e.touches.length === 2 && pinchD) {
+        if (HAS_GESTURE) { e.preventDefault(); return; }   // iOS 走 gesture 事件，避免与 touchmove 重复计算缩放
         e.preventDefault();
         const d = tdist(e.touches);
         if (d > 0) { S.zoom = clamp(pinchZ * d / pinchD, 0.4, 6); S.fit = 'custom'; applyZoom(); }
