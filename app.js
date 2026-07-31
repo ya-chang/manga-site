@@ -474,17 +474,21 @@
     show();
   })();
 
-  /* ───────── 背景样式切换（默认旧版纯色，按钮开启液态毛玻璃）───────── */
+  /* ───────── 背景样式切换（默认显示书架图，按钮切换回纯色）───────── */
   (function () {
     const KEY = 'mb:liquid';
     const btn = $('#bgToggle');
+    function isOn() { try { return localStorage.getItem(KEY) !== '0'; } catch (e) { return true; } }
     function apply() {
-      try { if (localStorage.getItem(KEY) === '1') document.body.classList.add('shelfig-on'); else document.body.classList.remove('shelfig-on'); } catch (e) {}
+      const on = isOn();
+      document.body.classList.toggle('no-shelfig', !on);
+      if (btn) btn.classList.toggle('on', on);
     }
     apply();
     if (btn) btn.addEventListener('click', () => {
-      const on = document.body.classList.toggle('shelfig-on');
+      const on = !isOn();
       try { localStorage.setItem(KEY, on ? '1' : '0'); } catch (e) {}
+      apply();
     });
   })();
 })();
