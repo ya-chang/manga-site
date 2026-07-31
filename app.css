@@ -42,6 +42,16 @@ a{color:inherit;text-decoration:none}
 #grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.032;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
 
+/* ── 免责弹窗 ── */
+.disclaimer{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;background:rgba(0,0,0,.28)}
+.disclaimer[hidden]{display:none}
+.dcard{width:min(440px,92vw);padding:26px 24px 22px;border-radius:var(--r-l);text-align:center}
+.dcard .dttl{font-size:18px;font-weight:600;margin-bottom:14px;letter-spacing:-.3px}
+.dcard .dtxt{font-size:14px;line-height:1.85;color:var(--ink-2)}
+.dcard .dtxt p{margin:0 0 8px}
+.dcard .dtxt a{color:var(--accent);text-decoration:underline}
+.dcard .dbtn{margin-top:18px;width:100%;justify-content:center}
+
 /* ══ 书架背景 · 用户图片 + 液态毛玻璃 ══ */
 #shelfig{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 #shelfig .ph{position:absolute;inset:0;background-size:cover;background-position:center;

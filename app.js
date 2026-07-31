@@ -462,4 +462,15 @@
     renderNav();
     route();
   })();
+
+  /* ───────── 免责弹窗 ───────── */
+  (function () {
+    const d = $('#disclaimer'); if (!d) return;
+    const KEY = 'mb:disclaimer';
+    function show() { try { if (localStorage.getItem(KEY)) { d.hidden = true; return; } } catch (e) {} d.hidden = false; }
+    function hide() { d.hidden = true; try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+    const ok = $('#discOk'); if (ok) ok.addEventListener('click', hide);
+    d.addEventListener('click', e => { if (e.target === d) hide(); });
+    show();
+  })();
 })();
