@@ -263,7 +263,7 @@ input[type=color].inp{padding:4px;width:48px;flex:none;height:40px;cursor:pointe
 /* ═════════ 阅读器 ═════════ */
 #reader{position:fixed;inset:0;z-index:50;background:var(--bg);display:none}
 #reader.on{display:block}
-#stage{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;
+#stage{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;
   scrollbar-width:thin;scrollbar-color:rgba(0,0,0,.18) transparent}
 #stage::-webkit-scrollbar{width:9px;height:9px}
 #stage::-webkit-scrollbar-thumb{background:rgba(0,0,0,.16);border-radius:9px;border:2px solid transparent;background-clip:padding-box}
