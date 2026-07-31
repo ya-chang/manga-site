@@ -37,7 +37,7 @@
     }
   })();
 
-  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const DPR = Math.min(window.devicePixelRatio || 1, 3);
   const MAXW = 2600;
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -77,14 +77,14 @@
           <button data-m="spread">双页</button>
         </div>
         <div class="sep hide-s"></div>
-        <button class="ico hide-s" id="m-bRtl" title="日式右起翻页"><svg viewBox="0 0 24 24"><path d="M9 5l-7 7 7 7"/><path d="M2 12h14a5 5 0 0 1 5 5v2"/></svg></button>
+        <button class="ico" id="m-bRtl" title="日式右起翻页"><svg viewBox="0 0 24 24"><path d="M9 5l-7 7 7 7"/><path d="M2 12h14a5 5 0 0 1 5 5v2"/></svg></button>
         <div class="sep hide-s"></div>
-        <button class="ico hide-s" id="m-bOut" title="缩小 (−)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <button class="ico" id="m-bOut" title="缩小 (−)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
         <span class="zoomv" id="m-zVal" title="点击重置">100%</span>
-        <button class="ico hide-s" id="m-bIn" title="放大 (+)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="ico" id="m-bIn" title="放大 (+)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
         <div class="sep"></div>
         <button class="ico" id="m-bFit" title="适应宽度 / 适应高度 (W)"><svg viewBox="0 0 24 24"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button>
-        <button class="ico hide-s" id="m-bFull" title="全屏 (F)"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+        <button class="ico" id="m-bFull" title="全屏 (F)"><svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
         <div class="sep"></div>
         <button class="ico" id="m-bClose" title="关闭 (Esc)"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </header>
@@ -131,7 +131,7 @@
         cMapPacked: true,
         disableStream: false,   // 允许流式分块
         disableAutoFetch: true, // 只取需要的页，不贪心预拉整本
-        rangeChunkSize: 65536,
+        rangeChunkSize: 1048576,
       });
       task.onProgress = p => { if (p.total) boot(true, '正在解析 PDF… ' + Math.round(p.loaded / p.total * 100) + '%'); };
       const doc = await task.promise;
@@ -139,7 +139,7 @@
       S.doc = doc; S.n = doc.numPages; S.name = title;
       boot(true, '正在测量页面…');
       S.meta = new Array(S.n);
-      const probeN = Math.min(S.n, 60);
+      const probeN = Math.min(S.n, 10);
       for (let i = 1; i <= probeN; i++) {
         const p = await doc.getPage(i);
         const v = p.getViewport({ scale: 1 });
@@ -225,7 +225,7 @@
       if (h.dataset.k !== kk || S.destroyed) return;
       const v1 = page.getViewport({ scale: 1 });
       S.meta[num - 1] = { w: v1.width, h: v1.height, r: v1.height / v1.width };
-      const w = Math.min(cssW, MAXW);
+      const w = Math.min(cssW, Math.min(3600, MAXW * Math.max(1, S.zoom)));
       const vp = page.getViewport({ scale: (w / v1.width) * DPR });
       const cv = document.createElement('canvas');
       cv.width = Math.floor(vp.width); cv.height = Math.floor(vp.height);
@@ -526,16 +526,70 @@
       else if (k === 'Escape') { if ($('#rail').classList.contains('on')) $('#m-bThumb').click(); else close(); }
     });
 
-    let tx = 0, ty = 0, tt = 0;
+    /* ── 触摸手势：单页/双页模式下的点按翻页、滑动翻页、捏合缩放、双击缩放 ── */
+    let tx = 0, ty = 0, tt = 0, moved = false, lastX = 0, lastY = 0;
+    let pinchD = 0, pinchZ = 1, tapTimer = 0, lastTapT = 0, lastTapX = 0, lastTapY = 0;
+    const tdist = ts => Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY);
     $('#stage').addEventListener('touchstart', e => {
-      if (!S || S.mode === 'scroll' || e.touches.length !== 1) return;
-      tx = e.touches[0].clientX; ty = e.touches[0].clientY; tt = Date.now();
-    }, { passive: true });
+      if (!S || S.mode === 'scroll') return;
+      if (e.touches.length === 1) {
+        tx = lastX = e.touches[0].clientX; ty = lastY = e.touches[0].clientY; tt = Date.now(); moved = false;
+      } else if (e.touches.length === 2) {
+        pinchD = tdist(e.touches); pinchZ = S.zoom;
+      }
+    }, { passive: false });
+    $('#stage').addEventListener('touchmove', e => {
+      if (!S || S.mode === 'scroll') return;
+      if (e.touches.length === 2 && pinchD) {
+        e.preventDefault();
+        const d = tdist(e.touches);
+        if (d > 0) { S.zoom = clamp(pinchZ * d / pinchD, 0.4, 6); S.fit = 'custom'; applyZoom(); }
+      } else if (e.touches.length === 1 && S.zoom > 1.05) {
+        // 放大后单指拖动交给原生滚动平移（不拦截）
+      } else if (e.touches.length === 1) {
+        if (Math.abs(e.touches[0].clientX - tx) > 8 || Math.abs(e.touches[0].clientY - ty) > 8) moved = true;
+      }
+    }, { passive: false });
     $('#stage').addEventListener('touchend', e => {
-      if (!S || S.mode === 'scroll' || !tt) return;
-      const t = e.changedTouches[0], dx = t.clientX - tx, dy = t.clientY - ty; tt = 0;
-      if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy) * 1.6) step(dx < 0 ? (S.rtl ? -1 : 1) : (S.rtl ? 1 : -1));
-    }, { passive: true });
+      if (!S || S.mode === 'scroll') return;
+      if (e.touches.length >= 1) return;            // 还有手指按着，忽略
+      if (pinchD) { pinchD = 0; return; }            // 结束捏合，不触发翻页
+      const t = e.changedTouches[0];
+      const dt = Date.now() - tt;
+      if (!moved && dt < 320 && S.zoom <= 1.05) {
+        // 双击切换缩放（1x <-> 2x）
+        if (Date.now() - lastTapT < 300 && Math.abs(t.clientX - lastTapX) < 40 && Math.abs(t.clientY - lastTapY) < 40) {
+          clearTimeout(tapTimer); lastTapT = 0;
+          S.zoom = S.zoom > 1.05 ? 1 : (S.mode === 'scroll' ? 1.6 : 2);
+          S.fit = S.mode === 'scroll' ? 'width' : 'custom';
+          applyZoom();
+          return;
+        }
+        lastTapT = Date.now(); lastTapX = t.clientX; lastTapY = t.clientY;
+        const r = $('#stage').getBoundingClientRect();
+        const prev = ((t.clientX - r.left) / r.width) < 0.35;
+        const dir = prev ? (S.rtl ? 1 : -1) : (S.rtl ? -1 : 1);
+        clearTimeout(tapTimer);
+        tapTimer = setTimeout(() => step(dir), 240);  // 延迟 240ms 以区分双击
+        S._touchTap = Date.now();
+      } else if (moved && S.zoom <= 1.05) {
+        const dx = t.clientX - tx;
+        if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(t.clientY - ty) * 1.6)
+          step(dx < 0 ? (S.rtl ? -1 : 1) : (S.rtl ? 1 : -1));
+      }
+      tt = 0; moved = false;
+    }, { passive: false });
+
+    /* ── 桌面：单页/双页点击图片翻页（手机触摸由上面的手势处理）── */
+    $('#stage').addEventListener('click', e => {
+      if (!S || S.mode === 'scroll') return;
+      if (e.target.closest('#rbar,#rfoot,#rail')) return;
+      if (S.zoom > 1.05) return;                    // 放大时交给平移
+      if (S._touchTap && Date.now() - S._touchTap < 600) return;  // 忽略触摸产生的合成 click
+      const r = $('#stage').getBoundingClientRect();
+      const prev = ((e.clientX - r.left) / r.width) < 0.35;
+      step(prev ? (S.rtl ? 1 : -1) : (S.rtl ? -1 : 1));
+    });
 
     let rz;
     window.addEventListener('resize', () => {
