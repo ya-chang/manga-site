@@ -42,6 +42,17 @@ a{color:inherit;text-decoration:none}
 #grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.032;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
 
+/* ══ 书架背景 · 用户图片 + 液态毛玻璃 ══ */
+#shelfig{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+#shelfig .ph{position:absolute;inset:0;background-size:cover;background-position:center;
+  background-image:url("assets/bookshelf-bg.jpg"),
+    radial-gradient(120% 90% at 22% 13%,rgba(10,132,255,.5),transparent 62%),
+    linear-gradient(150deg,color-mix(in srgb,var(--tint) 62%,#fff),color-mix(in srgb,var(--tint) 16%,#fff));
+  background-blend-mode:overlay,normal,normal;
+  filter:blur(8px) saturate(120%) brightness(.86);opacity:.95}
+#shelfig .grain{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+
 /* ── 玻璃 ── */
 .glass{position:relative;background:var(--glass);
   -webkit-backdrop-filter:blur(32px) saturate(190%);backdrop-filter:blur(32px) saturate(190%);
